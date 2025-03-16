@@ -32,31 +32,3 @@ Citizen.CreateThread(function()
             end
 		end	
 	end)
-
--- 在调整悬挂的函数后添加网络事件触发
-function AdjustSuspension(height, stiffness)
-    local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
-    if vehicle ~= 0 then
-        -- 本地调整
-        SetVehicleHandlingFloat(vehicle, "CHandlingData", "fSuspensionHeight", height)
-        SetVehicleHandlingFloat(vehicle, "CHandlingData", "fSuspensionForce", stiffness)
-        
-        -- 获取网络ID并发送到服务器
-        local netId = NetworkGetNetworkIdFromEntity(vehicle)
-        TriggerServerEvent('aq233_suspension:sync', netId, height, stiffness)
-    end
-end
-
-RegisterNetEvent('aq233_suspension:update')
-AddEventHandler('aq233_suspension:update', function(netId, height, stiffness)
-    local vehicle = NetworkGetEntityFromNetworkId(netId)
-    
-    if DoesEntityExist(vehicle) and GetEntityType(vehicle) == 2 then
-        SetVehicleHandlingFloat(vehicle, "CHandlingData", "fSuspensionHeight", height)
-        SetVehicleHandlingFloat(vehicle, "CHandlingData", "fSuspensionForce", stiffness)
-        
-        -- 强制物理更新
-        SetVehicleHandlingField(vehicle, 'CHandlingData', 'fSuspensionForce', stiffness)
-        SetVehicleHandlingField(vehicle, 'CHandlingData', 'fSuspensionHeight', height)
-    end
-end)
